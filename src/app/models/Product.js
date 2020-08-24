@@ -5,7 +5,8 @@ module.exports = {
     create(data) {
         const query = `
             INSERT INTO products (
-                name,               category_id,
+                name,
+                category_id,
                 user_id,
                 description,
                 old_price,
@@ -35,5 +36,43 @@ module.exports = {
         return db.query(`
             SELECT * FROM products WHERE id = $1
         `, [id]);
+    },
+    update(data) {
+        const query = `
+            UPDATE products SET
+                name = ($1),
+                category_id = ($2),
+                user_id = ($3),
+                description = ($4),
+                old_price = ($5),
+                price = ($6),
+                quantity = ($7),
+                status = ($8)
+            WHERE id = $9
+        `
+
+        const values = [
+            data.name,
+            data.category_id,
+            data.user_id,
+            data.description,
+            data.old_price,
+            data.price,
+            data.quantity,
+            data.status,
+            data.id
+        ];
+
+        return db.query(query, values);
+    },
+    delete(id) {
+        const query = `
+            DELETE FROM products
+            WHERE id = $1
+        `
+
+        const value = [id];
+
+        return db.query(query, value);
     }
 }
