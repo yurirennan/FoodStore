@@ -1,7 +1,9 @@
 const Category = require("../models/Category");
 const Product = require("../models/Product");
+const File = require("../models/File");
+
+
 const { formatBRL } = require("../../lib/utils");
-const { put } = require("../../routes");
 
 module.exports = {
     create(resquest, response) {
@@ -28,8 +30,13 @@ module.exports = {
             }
         }
 
+        if (request.files.length == 0) return response.send("Please, send at least one image!");
+
         let results = await Product.create(request.body);
         const productId = results.rows[0].id;
+
+        const filesPromises = request.files.map(file => File.create({ ...file, product_id: productId }));
+        await Promise.all(filesPromises);
 
         return response.redirect(`/products/${productId}/edit`);
     },
@@ -45,9 +52,16 @@ module.exports = {
 
         results = await Category.all();
         const categories = results.rows;
-        //console.log(results.rows[product.category_id - 1]);
 
-        return response.render("products/edit.njk", { categories, product });
+        results = await Product.files(product.id);
+        let files = results.rows;
+
+        files = files.map(file => ({
+            ...file,
+            src: `${request.protocol}://${request.headers.host}${file.path.replace("public", "")}`
+        }));
+
+        return response.render("products/edit.njk", { categories, product, files });
     },
 
     async put(request, response) {

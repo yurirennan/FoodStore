@@ -74,5 +74,10 @@ module.exports = {
         const value = [id];
 
         return db.query(query, value);
+    },
+    files(id) {
+        return db.query(`
+            SELECT * FROM files WHERE product_id = $1
+        `, [id]);
     }
 }
